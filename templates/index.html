@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Downloader</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>YouTube Video Downloader</h1>
+        
+        <div class="input-section">
+            <input type="text" id="url" placeholder="Enter YouTube URL" required>
+            <button type="button" onclick="fetchFormats()" class="fetch-btn">Fetch Video</button>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Fetching video details...</p>
+        </div>
+
+        <div id="error-message" class="error-message" style="display: none;"></div>
+
+        <div id="video-info" class="video-info" style="display: none;">
+            <img id="thumbnail" alt="Video thumbnail">
+            <h3 id="video-title"></h3>
+            
+            <form id="downloadForm" action="/download" method="post">
+                <input type="hidden" name="url" id="hiddenUrl">
+                
+                <div class="format-selection">
+                    <select name="format" id="format" onchange="updateQualitySelection()">
+                        <option value="mp4">MP4 (Video)</option>
+                        <option value="mp3">MP3 (Audio)</option>
+                    </select>
+                </div>
+
+                <div class="quality-selection">
+                    <select name="quality" id="quality">
+                        <option value="" disabled selected>Select Quality</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="download-btn">
+                    <span class="download-text">Download</span>
+                    <span class="downloading-text" style="display: none;">Downloading...</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        async function fetchFormats() {
+            const url = document.getElementById("url").value;
+            if (!url) {
+                showError("Please enter a YouTube URL");
+                return;
+            }
+
+            showLoading(true);
+            hideError();
+
+            try {
+                const formData = new FormData();
+                formData.append("url", url);
+
+                const response = await fetch("/get_formats", { 
+                    method: "POST", 
+                    body: formData 
+                });
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                // Store formats data globally
+                window.videoData = data;
+
+                // Update UI with video information
+                document.getElementById("thumbnail").src = data.thumbnail;
+                document.getElementById("video-title").textContent = data.title;
+
+                // Update quality dropdown based on format
+                updateQualitySelection();
+
+                // Show video info section
+                document.getElementById("video-info").style.display = "block";
+
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function updateQualitySelection() {
+            if (!window.videoData) return;
+
+            const format = document.getElementById("format").value;
+            const qualitySelect = document.getElementById("quality");
+            qualitySelect.innerHTML = '<option value="" disabled selected>Select Quality</option>';
+
+            const formats = format === 'mp4' ? window.videoData.videos : window.videoData.audios;
+            
+            for (const [label, formatId] of Object.entries(formats)) {
+                const option = document.createElement('option');
+                option.value = formatId;
+                option.textContent = label;
+                qualitySelect.appendChild(option);
+            }
+        }
+
+        function showLoading(show) {
+            document.getElementById("loading").style.display = show ? "flex" : "none";
+            if (show) {
+                document.getElementById("video-info").style.display = "none";
+            }
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById("error-message");
+            errorDiv.textContent = message;
+            errorDiv.style.display = "block";
+        }
+
+        function hideError() {
+            document.getElementById("error-message").style.display = "none";
+        }
+
+        document.getElementById("downloadForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            const url = document.getElementById("url").value;
+            const quality = document.getElementById("quality").value;
+            
+            if (!quality) {
+                showError("Please select a quality");
+                return;
+            }
+
+            // Show downloading state
+            const downloadBtn = this.querySelector(".download-btn");
+            const downloadText = downloadBtn.querySelector(".download-text");
+            const downloadingText = downloadBtn.querySelector(".downloading-text");
+            
+            downloadText.style.display = "none";
+            downloadingText.style.display = "inline";
+            downloadBtn.disabled = true;
+
+            document.getElementById("hiddenUrl").value = url;
+            this.submit();
+
+            // Reset button state after a delay
+            setTimeout(() => {
+                downloadText.style.display = "inline";
+                downloadingText.style.display = "none";
+                downloadBtn.disabled = false;
+            }, 3000);
+        });
+    </script>
+</body>
+</html>
