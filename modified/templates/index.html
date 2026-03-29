@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediaFlow</title>
+<link rel="stylesheet" href="/static/css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo">
+      <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="20" fill="#6c63ff"/><path d="M14 13l14 7-14 7V13z" fill="white"/></svg>
+      <span>MediaFlow</span>
+    </div>
+    <nav>
+      <a href="#" class="nav-link active" data-tab="downloader">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v14M5 9l7 7 7-7"/><path d="M3 20h18"/></svg>
+        Downloader
+      </a>
+      <a href="#" class="nav-link" data-tab="queue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M3 9h18"/></svg>
+        Queue
+      </a>
+    </nav>
+    <div class="sidebar-footer">Supports YouTube &middot; YT Music &middot; Spotify</div>
+  </aside>
+
+  <main class="main">
+    <div id="tab-downloader" class="tab-content active">
+      <header class="page-header">
+        <h1>Download Media</h1>
+        <p>Paste a link from YouTube, YouTube Music, or Spotify</p>
+      </header>
+
+      <div class="url-card">
+        <div class="url-input-wrap">
+          <div class="url-badge" id="urlBadge">&#128279; URL</div>
+          <input type="text" id="urlInput" class="url-input"
+            placeholder="https://open.spotify.com/playlist/...  or  https://youtube.com/...">
+          <button class="btn-fetch" id="fetchBtn" onclick="fetchInfo()">Fetch Info</button>
+        </div>
+        <div class="url-examples">
+          <span>Try:</span>
+          <code>open.spotify.com/playlist/...</code>
+          <code>youtube.com/playlist?list=...</code>
+          <code>music.youtube.com/watch?v=...</code>
+        </div>
+      </div>
+
+      <div id="loadingSpinner" class="spinner hidden"></div>
+      <div id="errorBanner" class="error-banner hidden"></div>
+
+      <div id="singleCard" class="result-card hidden">
+        <div class="media-header">
+          <img id="mediaThumb" src="" alt="thumbnail" class="media-thumb">
+          <div class="media-meta">
+            <h2 id="mediaTitle"></h2>
+            <p  id="mediaChannel" class="channel-name"></p>
+            <p  id="mediaDuration" class="duration"></p>
+          </div>
+        </div>
+        <div id="videoFormats" class="formats-section hidden">
+          <h3>&#127916; Video Formats</h3>
+          <div class="format-grid" id="videoGrid"></div>
+        </div>
+        <div class="formats-section">
+          <h3>&#127925; Audio Formats</h3>
+          <div class="format-grid" id="audioGrid"></div>
+        </div>
+        <button class="btn-download" onclick="downloadSingle()">&#11015; Download</button>
+      </div>
+
+      <div id="playlistCard" class="result-card hidden">
+        <div class="playlist-header">
+          <img id="plCover" src="" alt="" class="pl-cover">
+          <div>
+            <h2 id="plName"></h2>
+            <p id="plCount" class="channel-name"></p>
+          </div>
+        </div>
+        <div class="pl-controls">
+          <div class="mode-switch">
+            <label><input type="radio" name="plMode" value="audio" checked> &#127925; Audio</label>
+            <label><input type="radio" name="plMode" value="video"> &#127916; Video</label>
+          </div>
+          <select id="plQuality" class="quality-select">
+            <option value="320">320 kbps</option>
+            <option value="256">256 kbps</option>
+            <option value="192">192 kbps</option>
+            <option value="128">128 kbps</option>
+          </select>
+          <span id="plSelectedCount" class="sel-count">0 selected</span>
+          <div class="pl-actions">
+            <button class="btn-sm" onclick="selectAll(true)">&#9989; Select All</button>
+            <button class="btn-sm btn-outline" onclick="selectAll(false)">&#9744; Deselect</button>
+          </div>
+        </div>
+        <div id="trackList" class="track-list"></div>
+        <div class="pl-footer">
+          <span id="plTotalSize" class="total-size"></span>
+          <button class="btn-download" style="width:auto;padding:10px 28px;margin-top:0" onclick="downloadPlaylist()">&#11015; Download Selected</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-queue" class="tab-content hidden">
+      <header class="page-header">
+        <h1>Download Queue</h1>
+        <p>Live progress of all downloads</p>
+        <button class="btn-sm btn-outline" onclick="clearDone()" style="margin-top:8px">&#128465; Clear Done</button>
+      </header>
+      <div id="queueList" class="queue-list">
+        <div class="empty-state">No downloads yet</div>
+      </div>
+    </div>
+  </main>
+</div>
+<script src="/static/js/main.js"></script>
+<script src="/static/js/progress.js"></script>
+</body>
+</html>
